@@ -47,7 +47,7 @@ YOUTUBE_URL_RE = re.compile(
 )
 
 # Cookie file path
-COOKIES_FILE = "youtube_cookies.json"
+COOKIES_FILE = "cookies.txt"
 
 
 @dataclass
