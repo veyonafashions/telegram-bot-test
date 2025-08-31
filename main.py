@@ -2,7 +2,7 @@
 """
 A Telegram bot that fetches direct video and audio links from YouTube
 using a Piped API instance. This version is optimized for webhook deployment on
-platforms like Render using a Uvicorn server.
+platforms like Render.
 """
 
 import os
@@ -20,6 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Read environment variables
 TOKEN = os.getenv("BOT_TOKEN")
 if not TOKEN:
     raise ValueError("FATAL: No BOT_TOKEN found in environment variables")
@@ -34,7 +35,7 @@ YOUTUBE_ID_REGEX = re.compile(
     r"(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})"
 )
 
-# --- Helper Functions & Command Handlers --- (No changes here)
+# --- Helper Functions & Command Handlers ---
 
 def extract_video_id(text: str) -> str | None:
     """Extracts a YouTube video ID from a string (URL or plain ID)."""
@@ -44,7 +45,7 @@ def extract_video_id(text: str) -> str | None:
     return None
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Sends a welcome message when the /start command is issued."""
+    """Sends a welcome message."""
     await update.message.reply_text(
         "🎬 Welcome! Send `/yt <YouTube Video URL or ID>` to get direct links.",
         parse_mode=ParseMode.MARKDOWN,
@@ -54,14 +55,13 @@ async def yt(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Fetches and sends direct video/audio links for a given YouTube video."""
     if not context.args:
         await update.message.reply_text(
-            "⚠️ **Usage:** `/yt <YouTube URL or video_id>`",
-            parse_mode=ParseMode.MARKDOWN,
+            "⚠️ **Usage:** `/yt <YouTube URL or video_id>`", parse_mode=ParseMode.MARKDOWN
         )
         return
     query = " ".join(context.args)
     video_id = extract_video_id(query)
     if not video_id:
-        await update.message.reply_text("❌ Couldn't find a valid YouTube Video ID in your message.")
+        await update.message.reply_text("❌ Couldn't find a valid YouTube Video ID.")
         return
     processing_message = await update.message.reply_text("⏳ Fetching video info...")
     api_url = f"{PIPED_API_INSTANCE}/streams/{video_id}"
@@ -100,20 +100,28 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     """Log errors caused by updates."""
     logger.error("Exception while handling an update:", exc_info=context.error)
 
-# --- Uvicorn Setup ---
+def main() -> None:
+    """Sets up and runs the Telegram bot."""
+    app = Application.builder().token(TOKEN).build()
 
-# The `app` object is created at the module level. Uvicorn will look for this.
-# We configure the webhook settings on this object directly.
-secret_path = TOKEN.split(':')[-1]
-app = (
-    Application.builder()
-    .token(TOKEN)
-    .webhook_url(f"{WEBHOOK_URL}/{secret_path}")
-    .listen_port(PORT)
-    .build()
-)
+    # Register command handlers
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("yt", yt))
 
-# Register all handlers on the app object
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("yt", yt))
-app.add_error_handler(error_handler)
+    # Register the error handler
+    app.add_error_handler(error_handler)
+    
+    # Use a secret part of the token as the webhook path
+    secret_path = TOKEN.split(':')[-1]
+
+    # Start the bot in webhook mode
+    logger.info(f"Starting webhook on port {PORT}")
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=secret_path,
+        webhook_url=f"{WEBHOOK_URL}/{secret_path}"
+    )
+
+if __name__ == "__main__":
+    main()
