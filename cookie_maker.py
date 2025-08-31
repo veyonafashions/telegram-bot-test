@@ -1,3 +1,5 @@
+import subprocess
+import threading
 import asyncio
 from playwright.async_api import async_playwright
 import json
@@ -39,6 +41,7 @@ def run_bot(file):
 
 # ----------- Main ----------- #
 if __name__ == "__main__":
+    asyncio.run(run())
     # Start Flask in a thread
     threading.Thread(target=run_flask).start()
 
