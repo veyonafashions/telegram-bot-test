@@ -9,6 +9,9 @@ import time
 PROFILE_DIR = "/opt/render/.cache/playwright-profile"
 COOKIES_FILE = "cookies.json"
 
+EMAIL = os.getenv("YT_EMAIL")
+PASSWORD = os.getenv("YT_PASSWORD")
+
 # ----------- Playwright Cookie Refresher ----------- #
 async def refresh_cookies():
     async with async_playwright() as p:
@@ -17,8 +20,24 @@ async def refresh_cookies():
             headless=True
         )
         page = await browser.new_page()
-        await page.goto("https://youtube.com")
 
+        # Open login page
+        await page.goto("https://accounts.google.com/ServiceLogin")
+
+        # Fill email
+        await page.fill("input[type='email']", EMAIL)
+        await page.click("button:has-text('Next')")
+        await page.wait_for_timeout(3000)
+
+        # Fill password
+        await page.fill("input[type='password']", PASSWORD)
+        await page.click("button:has-text('Next')")
+        await page.wait_for_timeout(5000)  # wait for redirect to YouTube
+
+        # Go to YouTube to confirm login
+        await page.goto("https://youtube.com", wait_until="domcontentloaded")
+
+        # Save cookies
         cookies = await browser.cookies()
         with open(COOKIES_FILE, "w") as f:
             json.dump(cookies, f, indent=2)
@@ -32,15 +51,9 @@ def run_bot(file):
 
 # ----------- Main ----------- #
 if __name__ == "__main__":
-    # 1. Refresh cookies once
     asyncio.run(refresh_cookies())
+    time.sleep(2)
 
-    # 2. Start converter
-    threading.Thread(target=run_bot, args=("j_to_txt.py",)).start()
 
-    # 3. Start Telegram bot
-    threading.Thread(target=run_bot, args=("bot.py",)).start()
-
-    # 4. Keep alive
     while True:
         time.sleep(60)
