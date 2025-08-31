@@ -27,14 +27,14 @@ def json_to_netscape(json_file="cookies.json", txt_file="cookies.txt"):
 
 if __name__ == "__main__":
     json_to_netscape()
-    # Start Flask in a thread
-    threading.Thread(target=run_flask).start()
+    # # Start Flask in a thread
+    # threading.Thread(target=run_flask).start()
 
-    # Start each bot in a subprocess/thread
-    threading.Thread(target=run_bot, args=("edb.py",)).start()
-    # threading.Thread(target=run_bot, args=("login.py",)).start()
+    # # Start each bot in a subprocess/thread
+    # threading.Thread(target=run_bot, args=("edb.py",)).start()
+    # # threading.Thread(target=run_bot, args=("login.py",)).start()
 
-    # 🛡️ Keep main thread alive forever
-    while True:
-        time.sleep(60)
+    # # 🛡️ Keep main thread alive forever
+    # while True:
+    #     time.sleep(60)
 
