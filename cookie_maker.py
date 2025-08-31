@@ -4,36 +4,26 @@ import asyncio
 from playwright.async_api import async_playwright
 import json
 import os
+import time
 
-async def run():
-    email = os.environ["YT_EMAIL"]
-    password = os.environ["YT_PASSWORD"]
+PROFILE_DIR = "/opt/render/.cache/playwright-profile"
+COOKIES_FILE = "cookies.json"
 
+# ----------- Playwright Cookie Refresher ----------- #
+async def refresh_cookies():
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        context = await browser.new_context()
-        page = await context.new_page()
+        browser = await p.chromium.launch_persistent_context(
+            user_data_dir=PROFILE_DIR,
+            headless=True
+        )
+        page = await browser.new_page()
+        await page.goto("https://youtube.com")
 
-        # Go to YouTube login
-        await page.goto("https://accounts.google.com/ServiceLogin")
-
-        # Enter email
-        await page.fill("input[type=email]", email)
-        await page.click("button:has-text('Next')")
-        await page.wait_for_timeout(2000)
-
-        # Enter password
-        await page.fill("input[type=password]", password)
-        await page.click("button:has-text('Next')")
-        await page.wait_for_timeout(5000)
-
-        # Save cookies
-        cookies = await context.cookies()
-        with open("cookies.json", "w") as f:
+        cookies = await browser.cookies()
+        with open(COOKIES_FILE, "w") as f:
             json.dump(cookies, f, indent=2)
 
-        print("✅ Cookies refreshed and saved to cookies.json")
-
+        print(f"✅ Cookies refreshed and saved to {COOKIES_FILE}")
         await browser.close()
 
 # ----------- Run Bots as Subprocesses ----------- #
@@ -42,14 +32,15 @@ def run_bot(file):
 
 # ----------- Main ----------- #
 if __name__ == "__main__":
-    asyncio.run(run())
-    # Start Flask in a thread
-    threading.Thread(target=run_flask).start()
+    # 1. Refresh cookies once
+    asyncio.run(refresh_cookies())
 
-    # Start each bot in a subprocess/thread
+    # 2. Start converter
     threading.Thread(target=run_bot, args=("j_to_txt.py",)).start()
-    # threading.Thread(target=run_bot, args=("login.py",)).start()
 
-    # 🛡️ Keep main thread alive forever
+    # 3. Start Telegram bot
+    threading.Thread(target=run_bot, args=("bot.py",)).start()
+
+    # 4. Keep alive
     while True:
         time.sleep(60)
