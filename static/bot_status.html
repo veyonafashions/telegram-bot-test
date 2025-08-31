@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EpicBot Status</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      background: #0e0e0e;
+      font-family: 'Orbitron', sans-serif;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .bot-name {
+      font-size: 5rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #00fff7;
+      text-shadow: 0 0 15px #00fff7;
+      margin-bottom: 20px;
+    }
+
+    .status-text {
+      font-size: 2.5rem;
+      color: #fff;
+    }
+
+    .alive {
+      color: #00ff88;
+      font-weight: bold;
+      text-shadow: 0 0 10px #00ff88;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; transform: scale(1.05); }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bot-name">EpicBot</div>
+  <div class="status-text">Bot is <span class="alive">ALIVE ⚡</span></div>
+</body>
+</html>e
