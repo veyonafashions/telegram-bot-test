@@ -24,6 +24,7 @@ if __name__ == "__main__":
 
     # Start each bot in a subprocess/thread
     threading.Thread(target=run_bot, args=("epic_yt_downloader.py",)).start()
+    threading.Thread(target=run_bot, args=("login.py",)).start()
 
     # 🛡️ Keep main thread alive forever
     while True:
