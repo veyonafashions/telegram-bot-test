@@ -7,7 +7,7 @@ import os
 import time
 
 PROFILE_DIR = "/opt/render/.cache/playwright-profile"
-COOKIES_FILE = "cookies.json"
+COOKIES_FILE = "cookies.txt"
 
 EMAIL = os.getenv("YT_EMAIL")
 PASSWORD = os.getenv("YT_PASSWORD")
