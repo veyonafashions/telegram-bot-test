@@ -358,7 +358,7 @@ def show_lists_cb(update: Update, context: CallbackContext):
     data = query.data
     _, msg_id_s = data.split("|")
     msg_id = int(msg_id_s)
-    chat_id = query.effective_chat.id
+    chat_id = query.message.chat_id
     chat_data = get_chat_data(chat_id)
 
     if data.startswith("show_audio|"):
@@ -377,11 +377,11 @@ def cancel_cb(update: Update, context: CallbackContext):
     query.answer("Cancelled")
     query.edit_message_reply_markup(None)
     # Clean up job state
-    job_key = (query.effective_chat.id, query.message.message_id)
+    job_key = (query.message.chat_id, query.message.message_id)
     if job_key in ACTIVE_JOBS:
         shutil.rmtree(ACTIVE_JOBS[job_key].tempdir, ignore_errors=True)
         ACTIVE_JOBS.pop(job_key)
-    chat_data = get_chat_data(query.effective_chat.id)
+    chat_data = get_chat_data(query.message.chat_id)
     chat_data.pop(f"opts:{query.message.message_id}:audio", None)
     chat_data.pop(f"opts:{query.message.message_id}:video", None)
     chat_data.pop(f"job:{query.message.message_id}", None)
@@ -393,7 +393,7 @@ def pick_cb(update: Update, context: CallbackContext):
     kind, msg_id_s = kind_msg.split("|")
     idx = int(idx_s)
     msg_id = int(msg_id_s)
-    chat_id = query.effective_chat.id
+    chat_id = query.message.chat_id
     chat_data = get_chat_data(chat_id)
 
     options = chat_data.get(f"opts:{msg_id}:{'audio' if kind=='pick_a' else 'video'}", [])
@@ -429,7 +429,7 @@ def run_download_flow(
     audio_selection: Optional[dict] = None,
     video_selection: Optional[dict] = None,
 ):
-    chat = query.message.chat
+    chat = update.effective_chat
     chat_id = chat.id
 
     
