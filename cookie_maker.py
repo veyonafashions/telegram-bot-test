@@ -46,7 +46,7 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask).start()
 
     # Start each bot in a subprocess/thread
-    threading.Thread(target=run_bot, args=("cookie_maker.py",)).start()
+    threading.Thread(target=run_bot, args=("j_to_txt.py",)).start()
     # threading.Thread(target=run_bot, args=("login.py",)).start()
 
     # 🛡️ Keep main thread alive forever
