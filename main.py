@@ -429,7 +429,9 @@ def run_download_flow(
     audio_selection: Optional[dict] = None,
     video_selection: Optional[dict] = None,
 ):
-    chat = update.effective_chat
+    chat = query.message.chat
+    chat_id = chat.id
+
     
     def progress_hook(d):
         try:
