@@ -46,6 +46,9 @@ YOUTUBE_URL_RE = re.compile(
     r"https?://(?:www\.)?(?:youtube\.com/(?:watch\?v=[^&\s]+|shorts/[^\s/?#&]+)|youtu\.be/[^\s/?#&]+)"
 )
 
+# Cookie file path
+COOKIES_FILE = "cookies.txt"
+
 
 @dataclass
 class UserSettings:
@@ -108,6 +111,7 @@ def pick_audio_postprocessors(profile: str, embed_thumbnail: bool = True):
 
 def list_formats(url: str) -> Tuple[dict, List[dict], List[dict]]:
     ydl_opts = {
+        "cookiefile": COOKIES_FILE,  # ADDED: Pass cookies to yt-dlp
         "quiet": True,
         "skip_download": True,
         "no_warnings": True,
@@ -178,6 +182,7 @@ def download_with_ytdlp(
 ) -> Tuple[Path, dict]:
     outtmpl = str(tempdir / "%(title).200B [%(id)s].%(ext)s")
     ydl_opts = {
+        "cookiefile": COOKIES_FILE, # ADDED: Pass cookies to yt-dlp
         "outtmpl": {"default": outtmpl},
         "noprogress": True,
         "quiet": True,
