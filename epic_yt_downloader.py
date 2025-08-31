@@ -544,6 +544,7 @@ def main():
     updater = Updater(BOT_TOKEN, use_context=True)
     dispatcher = updater.dispatcher
 
+    # Handlers
     dispatcher.add_handler(CommandHandler("start", start_cmd))
     dispatcher.add_handler(CommandHandler("help", help_cmd))
     dispatcher.add_handler(CommandHandler("settings", settings_cmd))
@@ -558,9 +559,26 @@ def main():
 
     dispatcher.add_error_handler(error_handler)
 
-    logger.info("Bot started. Awaiting updates...")
-    updater.start_polling()
+    logger.info("Bot starting...")
+
+    # --- Decide whether to use webhook or polling ---
+    if "RENDER_EXTERNAL_HOSTNAME" in os.environ:  # Running on Render/Heroku
+        port = int(os.environ.get("PORT", 8443))
+        webhook_url = f"https://{os.environ['RENDER_EXTERNAL_HOSTNAME']}/{BOT_TOKEN}"
+
+        logger.info(f"Starting webhook on port {port}, url={webhook_url}")
+        updater.start_webhook(
+            listen="0.0.0.0",
+            port=port,
+            url_path=BOT_TOKEN,
+            webhook_url=webhook_url,
+        )
+    else:  # Local development
+        logger.info("Starting polling (local mode)")
+        updater.start_polling()
+
     updater.idle()
+
 
 if __name__ == "__main__":
     main()
