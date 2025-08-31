@@ -1,45 +1,50 @@
-import logging
 import os
-import yt_dlp
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
+import requests
+from telegram.ext import Application, CommandHandler
 
-logging.basicConfig(level=logging.INFO)
+# Telegram bot token (set in Render environment variables)
+TOKEN = os.getenv("BOT_TOKEN")
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot)
+# Public Piped API (Invidious alternative)
+PIPED_API = "https://pipedapi.kavin.rocks"
 
-# Start command
-@dp.message_handler(commands=["start"])
-async def start(msg: types.Message):
-    await msg.reply("🎬 Send me a YouTube link and I'll download the video for you.")
+async def start(update, context):
+    await update.message.reply_text("🎬 Send /yt <YouTube Video ID> to get the video link!")
 
-# Handle YouTube links
-@dp.message_handler(lambda m: m.text and "youtube.com" in m.text or "youtu.be" in m.text)
-async def handle_youtube(msg: types.Message):
-    url = msg.text.strip()
-    await msg.reply("⏳ Downloading... please wait.")
+async def yt(update, context):
+    if len(context.args) == 0:
+        await update.message.reply_text("⚠️ Usage: /yt <video_id>\nExample: /yt dQw4w9WgXcQ")
+        return
 
-    # Download video with yt-dlp
-    ydl_opts = {
-        "outtmpl": "downloads/%(title).50s.%(ext)s",
-        "format": "mp4",  # best mp4
-        "quiet": True,
-    }
+    video_id = context.args[0].strip()
+    url = f"{PIPED_API}/streams/{video_id}"
 
-    os.makedirs("downloads", exist_ok=True)
-    file_path = None
     try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=True)
-            file_path = ydl.prepare_filename(info)
+        resp = requests.get(url)
+        data = resp.json()
 
-        # Send file back
-        with open(file_path, "rb") as video:
-            await bot.send_video(msg.chat.id, video, caption=f"✅ {info['title']}")
+        if "videoStreams" not in data or not data["videoStreams"]:
+            await update.message.reply_text("❌ Couldn’t fetch video. Try another ID.")
+            return
+
+        # Pick best quality video
+        video_stream = max(data["videoStreams"], key=lambda v: v.get("qualityLabel", ""))
+        video_url = video_stream["url"]
+
+        # Reply with download link
+        await update.message.reply_text(
+            f"✅ Video: https://youtube.com/watch?v={video_id}\n"
+            f"🎥 Direct Link: {video_url}"
+        )
+
     except Exception as e:
-        await msg.reply(f"❌ Error: {e}")
+        await update.message.reply_text(f"❌ Error: {str(e)}")
+
+def main():
+    app = Application.builder().token(TOKEN).build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("yt", yt))
+    app.run_polling()
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    main()
