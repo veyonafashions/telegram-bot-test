@@ -197,7 +197,7 @@ def download_with_ytdlp(
         "noprogress": True,
         "quiet": True,
         "ignoreerrors": False,
-        "writethumbnail": True,
+        # "writethumbnail": True,
         "postprocessors": [],
         "merge_output_format": "mp4",
         "logger": logging.getLogger("yt-dlp-dl"),
