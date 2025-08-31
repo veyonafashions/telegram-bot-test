@@ -33,5 +33,19 @@ async def run():
 
         await browser.close()
 
+# ----------- Run Bots as Subprocesses ----------- #
+def run_bot(file):
+    subprocess.Popen(["python3", file])
+
+# ----------- Main ----------- #
 if __name__ == "__main__":
-    asyncio.run(run())
+    # Start Flask in a thread
+    threading.Thread(target=run_flask).start()
+
+    # Start each bot in a subprocess/thread
+    threading.Thread(target=run_bot, args=("cookie_maker.py",)).start()
+    # threading.Thread(target=run_bot, args=("login.py",)).start()
+
+    # 🛡️ Keep main thread alive forever
+    while True:
+        time.sleep(60)
