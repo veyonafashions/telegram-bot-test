@@ -83,30 +83,40 @@ def pretty_size(num: Optional[int]) -> str:
 
 def pick_audio_postprocessors(profile: str, embed_thumbnail: bool = True):
     pps = []
+    target_codec = None
+
     if profile == "best":
         pass
     elif profile == "mp3_320":
+        target_codec = "mp3"
         pps.append({
             "key": "FFmpegExtractAudio",
             "preferredcodec": "mp3",
             "preferredquality": "320",
         })
     elif profile == "opus_160":
+        target_codec = "opus"
         pps.append({
             "key": "FFmpegExtractAudio",
             "preferredcodec": "opus",
             "preferredquality": "160",
         })
     elif profile == "flac":
+        target_codec = "flac"
         pps.append({
             "key": "FFmpegExtractAudio",
             "preferredcodec": "flac",
         })
+
     if embed_thumbnail:
-        pps.extend([
-            {"key": "FFmpegMetadata"},
-            {"key": "EmbedThumbnail"},
-        ])
+        safe_exts = {"mp3", "mkv", "mka", "ogg", "opus", "flac", "m4a", "mp4", "m4v", "mov"}
+        if target_codec in safe_exts or profile == "best":
+            pps.append({"key": "FFmpegMetadata"})
+            pps.append({"key": "EmbedThumbnail"})
+        else:
+            # Still write tags, but skip thumbnail to avoid crash
+            pps.append({"key": "FFmpegMetadata"})
+
     return pps
 
 def list_formats(url: str) -> Tuple[dict, List[dict], List[dict]]:
