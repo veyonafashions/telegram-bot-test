@@ -7,6 +7,6 @@ python-dotenv
 flask
 pytz
 asyncpg
-apscheduler==3.10.4
+apscheduler==3.6.3
 playwright==1.47.0
 
